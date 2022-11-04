@@ -5,7 +5,7 @@
     "email": "stefaniuk3007@gmail.com",
     "url": "https://github.com/Penguin3007"
   },
-  "version": "1.0.4",
+  "version": "1.0.5",
   "homepage": "https://github.com/Penguin3007/vue3-repeater#readme",
   "scripts": {
     "serve": "vite serve",

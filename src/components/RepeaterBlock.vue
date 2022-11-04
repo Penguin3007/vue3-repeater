@@ -8,8 +8,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (event: "dragStart", payload: { target: HTMLElement }): void;
-  (event: "dragEnd", payload: { target: HTMLElement }): void;
+  (event: "dragStart", payload: DragEvent): void;
+  (event: "dragEnd", payload: DragEvent): void;
   (event: "click"): void;
   (event: "add"): void;
   (event: "duplicate"): void;
@@ -18,13 +18,19 @@ const emit = defineEmits<{
   (event: "down"): void;
 }>();
 
-const dragStart = ($event: { target: HTMLElement }) => {
-  $event.target.style.opacity = "0.5";
-  emit("dragStart", $event);
+const dragStart = ($event: DragEvent) => {
+  if ($event.target) {
+    const target = $event.target as HTMLDivElement;
+    target.style.opacity = "0.5";
+    emit("dragStart", $event);
+  }
 };
-const dragEnd = ($event: { target: HTMLElement }) => {
-  $event.target.style.opacity = "1";
-  emit("dragEnd", $event);
+const dragEnd = ($event: DragEvent) => {
+  if ($event.target) {
+    const target = $event.target as HTMLDivElement;
+    target.style.opacity = "1";
+    emit("dragEnd", $event);
+  }
 };
 </script>
 

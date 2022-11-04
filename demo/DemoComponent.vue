@@ -7,7 +7,7 @@
 import { ref } from "vue";
 import VueRepeater from "/src/index";
 
-const fields = ref([
+const fields = ref<Array<{ name: string; value: object }>>([
   { name: "address-component", value: { street: "", city: "", zip: "" } },
 ]);
 </script>

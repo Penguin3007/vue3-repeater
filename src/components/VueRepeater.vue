@@ -6,39 +6,48 @@ import {
   onBeforeUnmount,
   ref,
   reactive,
+  computed,
 } from "vue";
+import type { FieldType } from "@/types/Field";
 import { cloneDeep } from "lodash";
 import RepeaterBlock from "./RepeaterBlock.vue";
 import RepeaterDropZone from "./RepeaterDropZone.vue";
 
 const props = defineProps<{
-  modelValue: Array<{
-    name: string;
-    value: object;
-    defaultValue?: object;
-    active?: boolean;
-  }>;
+  modelValue: Array<FieldType>;
 }>();
 const emit = defineEmits<{
-  (
-    event: "update:modelValue",
-    payload: Array<{
-      name: string;
-      value: object;
-      defaultValue: object;
-      active?: boolean;
-    }>
-  ): void;
+  (event: "update:modelValue", payload: Array<FieldType>): void;
 }>();
 
 const repeater = ref();
 
-const data = reactive({
-  pFields: props.modelValue.map((el) => ({
-    ...el,
-    defaultValue: cloneDeep(el.value),
-  })),
+const data = reactive<{
+  defaults: { [key: string]: FieldType };
+  entered: number;
+}>({
+  defaults: {
+    key: {
+      name: "",
+      value: {},
+      active: false,
+    },
+  },
   entered: -1,
+});
+
+const fields = computed({
+  get: (): Array<FieldType> => props.modelValue,
+  set: (value: Array<FieldType>): void => {
+    emit("update:modelValue", value);
+  },
+});
+
+/**
+ * Generate default value object for each field from modelValue
+ */
+fields.value.forEach((field: FieldType) => {
+  Object.assign(data.defaults, { [field.name]: cloneDeep(field.value) });
 });
 
 onMounted(() => {
@@ -51,83 +60,55 @@ onBeforeUnmount(() => {
 const clickOutside = (): void => {
   deactivate();
 };
-const setFields = (
-  newFields: Array<{
-    name: string;
-    value: object;
-    defaultValue: object;
-    active?: boolean;
-  }>
-): void => {
-  data.pFields = newFields;
-  emit("update:modelValue", data.pFields);
-};
-const add = (
-  index: number,
-  field: { name: string; value: object; defaultValue: object; active?: boolean }
-): void => {
-  const newFields = cloneDeep(data.pFields);
-  const newField = cloneDeep(field);
-  newField.value = newField.defaultValue;
-  newField.active = false;
-  newFields.splice(index, 0, newField);
-  setFields(newFields);
+
+const add = (index: number, field: FieldType): void => {
+  fields.value.splice(index + 1, 0, {
+    name: field.name,
+    value: data.defaults[field.name],
+    active: false,
+  });
 };
 const remove = (index: number) => {
-  const newFields = cloneDeep(data.pFields);
-  newFields.splice(index, 1);
-  setFields(newFields);
+  fields.value.splice(index, 1);
 };
-const duplicate = (
-  index: number,
-  field: { name: string; value: object; defaultValue: object; active?: boolean }
-) => {
-  const newFields = cloneDeep(data.pFields);
-  const newField = cloneDeep(field);
-  newField.active = false;
-  newFields.splice(index, 0, newField);
-  setFields(newFields);
+const duplicate = (index: number, field: FieldType) => {
+  fields.value.splice(index, 0, cloneDeep(field));
 };
 const move = (from: string, to: number) => {
   const fromIndex = parseInt(from, 10) || 0;
-  const newFields = cloneDeep(data.pFields);
-  let el = newFields.splice(fromIndex, 1);
-  newFields.splice(to, 0, el[0]);
-  setFields(newFields);
+  const el = fields.value.splice(fromIndex, 1);
+  fields.value.splice(to, 0, el[0]);
   data.entered = -1;
 };
 const deactivate = () => {
-  const newFields = cloneDeep(data.pFields).map(
-    (el: {
-      name: string;
-      value: object;
-      defaultValue: object;
-      active?: boolean;
-    }) => ({
-      ...el,
-      active: false,
-    })
-  );
-  setFields(newFields);
+  fields.value.forEach((el: FieldType) => {
+    el.active = false;
+  });
 };
 const activate = (index: number) => {
   deactivate();
-  const newFields: Array<{
-    name: string;
-    value: object;
-    defaultValue: object;
-    active?: boolean;
-  }> = cloneDeep(data.pFields);
-  newFields[index].active = true;
-  setFields(newFields);
+  fields.value[index].active = true;
 };
-const dragEnd = ($event: { y: number; dataTransfer: DataTransfer }) => {
-  const { y } = $event;
-  const { bottom } = repeater.value.getBoundingClientRect();
-  const from = $event.dataTransfer.getData("index");
-  const to = data.pFields.length - 1;
-  if (y > bottom) {
-    move(from, to);
+const dragStart = ($event: DragEvent, index: number) => {
+  if ($event.dataTransfer) {
+    $event.dataTransfer.setData("index", String(index));
+  }
+};
+const dragEnd = ($event: DragEvent) => {
+  if ($event.target && $event.dataTransfer) {
+    const target = $event.target as HTMLDivElement;
+    const { y } = $event;
+    const { bottom } = target.getBoundingClientRect();
+    const from = $event.dataTransfer.getData("index");
+    const to = fields.value.length - 1;
+    if (y > bottom) {
+      move(from, to);
+    }
+  }
+};
+const drop = ($event: any, index: number) => {
+  if ($event.dataTransfer) {
+    move($event.dataTransfer.getData("index"), index);
   }
 };
 </script>
@@ -135,8 +116,8 @@ const dragEnd = ($event: { y: number; dataTransfer: DataTransfer }) => {
 <template>
   <div @click.prevent="" class="repeater" ref="repeater">
     <repeater-drop-zone
-      v-for="(field, index) in data.pFields"
-      @drop="move($event.dataTransfer.getData('index'), index)"
+      v-for="(field, index) in fields"
+      @drop="drop($event, index)"
       @dragEnter="data.entered = index"
       :class="{
         entered: data.entered === index,
@@ -144,19 +125,19 @@ const dragEnd = ($event: { y: number; dataTransfer: DataTransfer }) => {
       :key="field.name + index"
     >
       <repeater-block
-        @dragStart="$event.dataTransfer.setData('index', index)"
+        @dragStart="dragStart($event, index)"
         @dragEnd="dragEnd"
         @add="add(index, field)"
         @remove="remove(index)"
         @duplicate="duplicate(index, field)"
-        @up="move(index, index - 1)"
-        @down="move(index, index + 1)"
+        @up="move(String(index), index - 1)"
+        @down="move(String(index), index + 1)"
         @click="activate(index)"
         :class="{
           active: field.active,
         }"
         :isFirst="index === 0"
-        :isLast="index === data.pFields.length - 1"
+        :isLast="index === fields.length - 1"
       >
         <component :is="field.name" v-model="field.value"></component>
       </repeater-block>

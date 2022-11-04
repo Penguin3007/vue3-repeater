@@ -2,8 +2,8 @@
 import { defineEmits } from "vue";
 
 const emit = defineEmits<{
-  (event: "drop", payload: Event): void;
-  (event: "dragEnter", payload: Event): void;
+  (event: "drop", payload: DragEvent): void;
+  (event: "dragEnter", payload: DragEvent): void;
 }>();
 </script>
 
