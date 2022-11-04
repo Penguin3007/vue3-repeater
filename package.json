@@ -32,6 +32,7 @@
     "vue3-repeater",
     "typescript"
   ],
+  "license": "ISC",
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",
     "@types/lodash": "^4.14.187",
