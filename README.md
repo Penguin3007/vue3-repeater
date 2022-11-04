@@ -1,46 +1,118 @@
 # vue3-repeater
 
-This template should help get you started developing with Vue 3 in Vite.
+The Vue 3 repeater component allows you to create a set of subcomponents which can be repeated again and again!
 
-## Recommended IDE Setup
+This components is based on [VueJs Repeater](https://github.com/theguriev/vue-repeater)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Install
 
-## Type Support for `.vue` Imports in TS
+`npm i @penguin3007/vue3-repeater`
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+## How it works
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+### Start
+![Start](https://raw.githubusercontent.com/gcofficial/vue-repeater/master/gifs/start.gif)
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+### Reordering
+![Reordering](https://raw.githubusercontent.com/gcofficial/vue-repeater/master/gifs/reordering.gif)
 
-## Customize configuration
+### Add
+![Add](https://raw.githubusercontent.com/gcofficial/vue-repeater/master/gifs/add.gif)
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+### Remove
+![Remove](https://raw.githubusercontent.com/gcofficial/vue-repeater/master/gifs/remove.gif)
 
-## Project Setup
+### Duplicate
+![Duplicate](https://raw.githubusercontent.com/gcofficial/vue-repeater/master/gifs/duplicate.gif)
 
-```sh
-npm install
+## Usage
+### Basic example
+
+**./main.js** - entry point
+```javascript
+import { createApp } from 'vue';
+import AddressComponent from './components/AddressComponent';
+import App from './App';
+
+const app = createApp(App);
+app.component('address-component', AddressComponent);
+app.mount('#app');
 ```
 
-### Compile and Hot-Reload for Development
+**./components/Address.vue** - Component inside repeater
+```vue
+<template>
+    <div class="address">
+        <div class="row">
+            <label>Street</label>
+            <input v-model="localAddress.street" />
+            </div>
+            <div class="row">
+            <label>City</label>
+            <input v-model="localAddress.city" />
+            </div>
+            <div class="row">
+            <label>Zip</label>
+            <input v-model="localAddress.zip" />
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import {defineProps, defineEmits, computed} from 'vue';
 
-```sh
-npm run dev
+const emit = defineEmits<{
+    (event: 'input', payload: object): void
+}>()
+
+const props = defineProps<{
+    modelValue: object
+}>();
+
+const localAddress = computed({
+    get: () => props.modelValue,
+    set: (value: object) => {
+        emit('input', value)
+    }
+});
+</script>
+
+<style scoped lang="scss">
+.address {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+label {
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+input {
+    height: 32px;
+    border-radius: 4px;
+    border: 1px solid #DCDFE6;
+}
+</style>
 ```
 
-### Type-Check, Compile and Minify for Production
 
-```sh
-npm run build
-```
+**./App.vue** - application component
+```vue
+<script setup lang="ts">
+  import {ref} from "vue";
+  import VueRepeater from '@penguin3007/vue3-repeater';
 
-### Lint with [ESLint](https://eslint.org/)
+  const fields = ref([{name: 'address-component', value: {street: '', city: '', zip: ''}}])
+</script>
 
-```sh
-npm run lint
+<template>
+  {{ fields }}
+  <vue-repeater v-model="fields" />
+</template>
 ```
