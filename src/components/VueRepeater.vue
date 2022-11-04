@@ -133,7 +133,7 @@ const dragEnd = ($event: { y: number; dataTransfer: DataTransfer }) => {
 </script>
 
 <template>
-  <div @click.stop="" class="repeater" ref="repeater">
+  <div @click.prevent="" class="repeater" ref="repeater">
     <repeater-drop-zone
       v-for="(field, index) in data.pFields"
       @drop="move($event.dataTransfer.getData('index'), index)"

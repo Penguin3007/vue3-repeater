@@ -46,7 +46,7 @@ const dragEnd = ($event: { target: HTMLElement }) => {
           ></i>
         </button>
       </div>
-      <button @click.stop="emit('add')" title="Add">
+      <button @click.prevent="emit('add')" title="Add">
         <svg
           width="14"
           height="14"
@@ -60,7 +60,7 @@ const dragEnd = ($event: { target: HTMLElement }) => {
           />
         </svg>
       </button>
-      <button @click.stop="emit('duplicate')" content="Duplicate">
+      <button @click.prevent="emit('duplicate')" content="Duplicate">
         <svg
           width="14"
           height="14"
@@ -74,7 +74,7 @@ const dragEnd = ($event: { target: HTMLElement }) => {
           />
         </svg>
       </button>
-      <button @click.stop="emit('remove')" title="Remove block">
+      <button @click.prevent="emit('remove')" title="Remove block">
         <svg
           width="14"
           height="14"
@@ -92,7 +92,7 @@ const dragEnd = ($event: { target: HTMLElement }) => {
     <div class="navigation">
       <button
         v-if="!props.isFirst"
-        @click.stop="emit('up')"
+        @click.prevent="emit('up')"
         type="button"
         class="nav-button up"
       >
@@ -127,7 +127,7 @@ const dragEnd = ($event: { target: HTMLElement }) => {
       </button>
       <button
         v-if="!props.isLast"
-        @click.stop="emit('down')"
+        @click.prevent="emit('down')"
         type="button"
         class="nav-button down"
       >
